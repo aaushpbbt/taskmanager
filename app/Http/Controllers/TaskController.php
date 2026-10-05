@@ -33,4 +33,27 @@ class TaskController extends Controller
 
         return response()->json(['message' => 'Task deleted successfully']);
     }
+
+    public function findbyId($id){
+        $task = Task::findOrFail($id);
+        if($task){
+            return $task;
+        }else{
+            return response()->json(['message' => 'Task not found']);
+        }
+
+    }
+    public function updatebyId($id, Request $request){
+        $validatedData = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'completed' => 'boolean',
+        ]);
+
+        $task = Task::findOrFail($id);
+        $task->update($validatedData);
+
+        return $task;
+
+    }
 }
