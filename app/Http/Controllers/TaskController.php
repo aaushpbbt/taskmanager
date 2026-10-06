@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Task;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
     public function index()
     {
         $tasks = Task::all();
-        return $tasks;
+
+        return response()->json($tasks, 200);
     }
 
     public function store(Request $request)
@@ -18,42 +19,51 @@ class TaskController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'completed' => 'boolean',
+            'completed' => 'nullable|boolean',
         ]);
 
         $task = Task::create($validatedData);
 
-        return $task;
+        return response()->json($task, 201);
     }
 
     public function delete($id)
     {
-        $task = Task::findOrFail($id);
-        $task->delete();
+        $task = Task::find($id);
+        if ($task) {
+            $task->delete();
 
-        return response()->json(['message' => 'Task deleted successfully']);
-    }
-
-    public function findbyId($id){
-        $task = Task::findOrFail($id);
-        if($task){
-            return $task;
-        }else{
-            return response()->json(['message' => 'Task not found']);
+            return response()->json(['message' => 'Task deleted successfully'], 200);
         }
 
+        return response()->json(['message' => 'Task not found'], 404);
     }
-    public function updatebyId($id, Request $request){
+
+    public function findbyId($id)
+    {
+        $task = Task::find($id);
+        if ($task) {
+            return response()->json($task, 200);
+        }
+
+        return response()->json(['message' => 'Task not found'], 404);
+    }
+
+    public function updatebyId($id, Request $request)
+    {
         $validatedData = $request->validate([
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'completed' => 'boolean',
+            'completed' => 'nullable|boolean',
         ]);
 
-        $task = Task::findOrFail($id);
-        $task->update($validatedData);
+        $task = Task::find($id);
+        if ($task) {
+            $task->update($validatedData);
 
-        return $task;
+            return response()->json($task, 200);
+        }
 
+        return response()->json(['message' => 'Task not found'], 404);
     }
 }
