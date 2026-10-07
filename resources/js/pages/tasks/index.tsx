@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
+import { GoogleGenAI } from "@google/genai";
+
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -41,6 +43,7 @@ import {
     Sparkles,
     Check,
 } from "lucide-react";
+import { title } from "process";
 
 export type Task = {
     id: number;
@@ -137,7 +140,23 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
             setIsDarkMode(false);
         }
     }, []);
-
+    const ai = new GoogleGenAI({
+        apiKey: import.meta.env.VITE_GEMINI_API_KEY,
+    });
+    const askai = async (title: string) => {
+        try {
+            const response = await ai.models.generateContent({
+                model: "gemini-3.5-flash",
+                contents: `Write a short and clear description for this title.
+                Title: ${title}
+                Return only the description.`,
+            });
+            setCreateDescription(response.text || "");
+        } catch (error) {
+            console.error(error);
+            setCreateDescription("Sorry something went wrong. Please try again.");
+        }
+    }
     const fetchTasks = async () => {
         setLoading(true);
         setError(null);
@@ -416,13 +435,12 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
             {notification && (
                 <div className="fixed bottom-5 right-5 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
                     <div
-                        className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg backdrop-blur-md ${
-                            notification.type === "success"
-                                ? "border-emerald-500/30 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/80 dark:text-emerald-100"
-                                : notification.type === "error"
+                        className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg backdrop-blur-md ${notification.type === "success"
+                            ? "border-emerald-500/30 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/80 dark:text-emerald-100"
+                            : notification.type === "error"
                                 ? "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/20"
                                 : "border-border bg-card text-card-foreground"
-                        }`}
+                            }`}
                     >
                         {notification.type === "success" && (
                             <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -562,31 +580,28 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                         <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs font-medium">
                             <button
                                 onClick={() => setFilterStatus("all")}
-                                className={`rounded-md px-2.5 py-1.5 transition-all ${
-                                    filterStatus === "all"
-                                        ? "bg-background text-foreground shadow-xs"
-                                        : "text-muted-foreground hover:text-foreground"
-                                }`}
+                                className={`rounded-md px-2.5 py-1.5 transition-all ${filterStatus === "all"
+                                    ? "bg-background text-foreground shadow-xs"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
                             >
                                 All ({totalCount})
                             </button>
                             <button
                                 onClick={() => setFilterStatus("pending")}
-                                className={`rounded-md px-2.5 py-1.5 transition-all ${
-                                    filterStatus === "pending"
-                                        ? "bg-background text-foreground shadow-xs"
-                                        : "text-muted-foreground hover:text-foreground"
-                                }`}
+                                className={`rounded-md px-2.5 py-1.5 transition-all ${filterStatus === "pending"
+                                    ? "bg-background text-foreground shadow-xs"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
                             >
                                 Pending ({pendingCount})
                             </button>
                             <button
                                 onClick={() => setFilterStatus("completed")}
-                                className={`rounded-md px-2.5 py-1.5 transition-all ${
-                                    filterStatus === "completed"
-                                        ? "bg-background text-foreground shadow-xs"
-                                        : "text-muted-foreground hover:text-foreground"
-                                }`}
+                                className={`rounded-md px-2.5 py-1.5 transition-all ${filterStatus === "completed"
+                                    ? "bg-background text-foreground shadow-xs"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
                             >
                                 Done ({completedCount})
                             </button>
@@ -600,10 +615,10 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                                 onChange={(e) =>
                                     setSortBy(
                                         e.target.value as
-                                            | "newest"
-                                            | "oldest"
-                                            | "title-asc"
-                                            | "title-desc"
+                                        | "newest"
+                                        | "oldest"
+                                        | "title-asc"
+                                        | "title-desc"
                                     )
                                 }
                                 className="h-8 rounded-lg border border-input bg-transparent px-2 text-xs text-foreground outline-none focus:ring-1 focus:ring-ring dark:bg-input/20 cursor-pointer"
@@ -673,17 +688,17 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                             {searchQuery
                                 ? "No tasks match your search"
                                 : filterStatus === "completed"
-                                ? "No completed tasks yet"
-                                : filterStatus === "pending"
-                                ? "No pending tasks! All caught up!"
-                                : "No tasks in your workspace"}
+                                    ? "No completed tasks yet"
+                                    : filterStatus === "pending"
+                                        ? "No pending tasks! All caught up!"
+                                        : "No tasks in your workspace"}
                         </CardTitle>
                         <CardDescription className="mt-1.5 max-w-sm text-sm">
                             {searchQuery
                                 ? `No results found for "${searchQuery}". Try different search keywords or clear filters.`
                                 : filterStatus !== "all"
-                                ? `Switch back to the "All" tab or create a new task to get started.`
-                                : "Get started by organizing your work. Create your first task to stay productive."}
+                                    ? `Switch back to the "All" tab or create a new task to get started.`
+                                    : "Get started by organizing your work. Create your first task to stay productive."}
                         </CardDescription>
                         <div className="mt-5 flex gap-2">
                             {searchQuery ? (
@@ -718,11 +733,10 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                         {filteredTasks.map((task) => (
                             <Card
                                 key={task.id}
-                                className={`group/item border-border/70 transition-all duration-200 hover:shadow-md hover:border-primary/40 ${
-                                    task.completed
-                                        ? "bg-muted/30 dark:bg-muted/10 opacity-80"
-                                        : "bg-card"
-                                }`}
+                                className={`group/item border-border/70 transition-all duration-200 hover:shadow-md hover:border-primary/40 ${task.completed
+                                    ? "bg-muted/30 dark:bg-muted/10 opacity-80"
+                                    : "bg-card"
+                                    }`}
                             >
                                 <div className="flex items-start gap-3.5 p-4 sm:p-5">
                                     {/* Task Checkbox */}
@@ -730,9 +744,8 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                                         <Checkbox
                                             checked={task.completed}
                                             onCheckedChange={() => handleToggleComplete(task)}
-                                            aria-label={`Mark "${task.title}" as ${
-                                                task.completed ? "pending" : "completed"
-                                            }`}
+                                            aria-label={`Mark "${task.title}" as ${task.completed ? "pending" : "completed"
+                                                }`}
                                             className="size-5 rounded-md cursor-pointer transition-transform group-hover/item:scale-105"
                                         />
                                     </div>
@@ -741,11 +754,10 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <h3
-                                                className={`text-sm sm:text-base font-semibold tracking-tight transition-all ${
-                                                    task.completed
-                                                        ? "line-through text-muted-foreground"
-                                                        : "text-foreground"
-                                                }`}
+                                                className={`text-sm sm:text-base font-semibold tracking-tight transition-all ${task.completed
+                                                    ? "line-through text-muted-foreground"
+                                                    : "text-foreground"
+                                                    }`}
                                             >
                                                 {task.title}
                                             </h3>
@@ -773,11 +785,10 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                                         {/* Description */}
                                         {task.description && (
                                             <p
-                                                className={`mt-1 text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
-                                                    task.completed
-                                                        ? "text-muted-foreground/80 line-through"
-                                                        : "text-muted-foreground"
-                                                }`}
+                                                className={`mt-1 text-xs sm:text-sm leading-relaxed whitespace-pre-line ${task.completed
+                                                    ? "text-muted-foreground/80 line-through"
+                                                    : "text-muted-foreground"
+                                                    }`}
                                             >
                                                 {task.description}
                                             </p>
@@ -872,7 +883,17 @@ export default function Index({ tasks: initialTasks }: IndexProps) {
                                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                             >
                                 Description (Optional)
+
                             </label>
+                            <Button
+                                onClick={() => {
+                                    askai(createTitle);
+                                }}
+                                className="gap-1.5 shadow-sm "
+                            >
+                                <Sparkles className="size-4" />
+                                <span>Write with AI</span>
+                            </Button>
                             <Textarea
                                 id="create-task-desc"
                                 placeholder="Add extra notes, links, or context for this task..."
